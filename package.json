@@ -1,0 +1,24 @@
+{
+  "name": "itsa-website",
+  "version": "1.0.0",
+  "description": "ITSA — Information Technology Students Association, VIT Pune",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "threejs",
+    "webgl",
+    "itsa",
+    "vit-pune",
+    "portfolio"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mitkarisatyam/ITSA-Club-Website.git"
+  },
+  "homepage": "https://github.com/mitkarisatyam/ITSA-Club-Website#readme",
+  "author": "ITSA VIT Pune",
+  "license": "ISC"
+}
