@@ -4,7 +4,9 @@ const path = require('path');
 
 const PORT = 3000;
 const ALT_PORT = 8080;
-const ROOT = path.join(__dirname, 'clone');
+const ROOT = fs.existsSync(path.join(__dirname, 'ITSA'))
+  ? path.join(__dirname, 'ITSA')
+  : path.join(__dirname, 'clone');
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',

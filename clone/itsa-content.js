@@ -21,10 +21,6 @@
     [class*="border-white/10"] {
       display: none !important;
     }
-    [data-works-line="true"],
-    div:has(> [data-works-line="true"]) {
-      display: none !important;
-    }
   
     /* Remove project title and live links when scrolling images in Section 3 */
     section[data-geometry="diamond"] div.sticky,
@@ -176,11 +172,31 @@
       b.style.display = 'none';
     });
 
-    // Remove "Available for projects" & hello@ricardochance.com
+    // ITSA Projects badge & contact@vit.edu on works page
     const worksLines = document.querySelectorAll('[data-works-line="true"]');
     worksLines.forEach((el) => {
-      el.style.display = 'none';
-      if (el.parentElement) el.parentElement.style.display = 'none';
+      if (el.tagName === 'P') {
+        if (el.textContent.includes('Available for projects') || el.textContent !== 'ITSA Projects & Initiatives') {
+          el.textContent = 'ITSA Projects & Initiatives';
+        }
+      } else if (el.tagName === 'A') {
+        el.href = 'mailto:contact@vit.edu';
+        const charSpans = el.querySelectorAll('[data-vp-char]');
+        const emailStr = 'contact@vit.edu';
+        if (charSpans.length > 0) {
+          charSpans.forEach((span, idx) => {
+            if (idx < emailStr.length) {
+              if (span.textContent !== emailStr[idx]) span.textContent = emailStr[idx];
+              span.style.display = 'inline-block';
+            } else {
+              span.textContent = '';
+              span.style.display = 'none';
+            }
+          });
+        }
+        const srOnly = el.querySelector('.sr-only');
+        if (srOnly) srOnly.textContent = 'contact@vit.edu';
+      }
     });
 
     const emailLinks = document.querySelectorAll('a[href*="hello@ricardochance.com"], a[href*="instagram.com"], a[href*="linkedin.com"], a[href*="x.com"]');
