@@ -2,20 +2,6 @@
 
 A high-performance, immersive website for **ITSA — Information Technology Students Association, VIT Pune**. Features interactive 3D WebGL scenes, particle physics, custom typography, GSAP animations, responsive layouts, and domain project showcases.
 
-## 🚀 Local Server Link
-
-The website is running live on:
-
-**[http://localhost:3000](http://localhost:3000)**
-
-### Available Routes
-
-- **Home**: [http://localhost:3000/](http://localhost:3000/)
-- **About ITSA**: [http://localhost:3000/about](http://localhost:3000/about)
-- **Projects & Innovation**: [http://localhost:3000/work](http://localhost:3000/work)
-
----
-
 ## 🏛️ Sections Overview
 
 1. **Hero Section**: 
