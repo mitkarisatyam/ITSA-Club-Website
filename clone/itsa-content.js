@@ -18,7 +18,7 @@
     }
     div[class*="calc(100%-32px)"],
     div[class*="calc(100vh-32px)"],
-    [class*="border-white/10"] {
+    div.mx-auto.pointer-events-none.fixed[class*="border-white/10"] {
       display: none !important;
     }
   
@@ -126,10 +126,25 @@
   ];
 
   function applyITSAContent() {
+    // Cleanup any "Available for projects" or Ricardo email elements if rendered
+    document.querySelectorAll('p, a, button, span').forEach((el) => {
+      const text = el.textContent ? el.textContent.trim() : '';
+      if (text === 'Available for projects') {
+        const parentDiv = el.closest('div');
+        if (parentDiv && (parentDiv.querySelector('[data-works-line]') || el.closest('button'))) {
+          parentDiv.style.setProperty('display', 'none', 'important');
+        }
+        el.style.setProperty('display', 'none', 'important');
+      }
+      if (text.includes('hello@ricardochance.com')) {
+        const a = el.closest('a') || el;
+        a.style.setProperty('display', 'none', 'important');
+      }
+    });
     const path = window.location.pathname;
 
     // Document Metadata
-    if (document.title !== TITLE && !path.includes('/about') && !path.includes('/work')) {
+    if (document.title !== TITLE && !path.includes('/about') && !path.includes('/work') && !path.includes('/events')) {
       document.title = TITLE;
     }
     const metaDesc = document.querySelector('meta[name="description"]');
@@ -167,10 +182,15 @@
     });
 
     // Remove Viewport Frame Border
-    const frameBorders = document.querySelectorAll('div[class*="calc(100%-32px)"], div[class*="calc(100vh-32px)"], [class*="border-white/10"]');
+    const frameBorders = document.querySelectorAll('div[class*="calc(100%-32px)"], div[class*="calc(100vh-32px)"], div.mx-auto.pointer-events-none.fixed[class*="border-white/10"]');
     frameBorders.forEach((b) => {
       b.style.display = 'none';
     });
+
+    // If on /work or /events page, prevent modifying SplitText lines or causing mutation loops
+    if (path.includes('/work') || path.includes('/events')) {
+      return;
+    }
 
     // ITSA Projects badge & contact@vit.edu on works page
     const worksLines = document.querySelectorAll('[data-works-line="true"]');
@@ -261,8 +281,8 @@
     if (heroCtaBtns.length >= 2) {
       heroCtaBtns[0].setAttribute('data-cta-target', 'about');
       heroCtaBtns[0].setAttribute('onclick', "window.__itsaScroll && window.__itsaScroll('about')");
-      heroCtaBtns[1].setAttribute('data-cta-target', 'projects');
-      heroCtaBtns[1].setAttribute('onclick', "window.__itsaScroll && window.__itsaScroll('projects')");
+      heroCtaBtns[1].setAttribute('data-cta-target', 'work');
+      heroCtaBtns[1].setAttribute('onclick', "window.open('/work', '_blank')");
       heroCtaBtns.forEach(btn => {
         btn.classList.remove('invisible');
         btn.style.cursor = 'pointer';
@@ -301,6 +321,33 @@
         parentP.setAttribute('data-action', 'contact');
         parentP.style.cursor = 'pointer';
       }
+    }
+
+    // Ensure Events option is present in header nav
+    const headerNav = document.querySelector('header nav, div.relative > nav');
+    if (headerNav && !headerNav.querySelector('a[href="/events"]')) {
+      const eventsLink = document.createElement('a');
+      eventsLink.setAttribute('data-event', 'simple-hover');
+      eventsLink.className = 'inherit';
+      eventsLink.href = '/events';
+      eventsLink.innerHTML = '<span data-proximity-text="true" class="inline"><span class="red_hat_display_c426665f-module__-9R5Xa__className" style="display:inline"><span style="display:inline-block;white-space:nowrap"><span data-vp-char="" style="display:inline-block" aria-hidden="true">E</span><span data-vp-char="" style="display:inline-block" aria-hidden="true">v</span><span data-vp-char="" style="display:inline-block" aria-hidden="true">e</span><span data-vp-char="" style="display:inline-block" aria-hidden="true">n</span><span data-vp-char="" style="display:inline-block" aria-hidden="true">t</span><span data-vp-char="" style="display:inline-block" aria-hidden="true">s</span></span><span class="sr-only">Events</span></span></span>';
+      const contactTarget = headerNav.querySelector('p[data-action="contact"], p');
+      if (contactTarget) {
+        headerNav.insertBefore(eventsLink, contactTarget);
+      } else {
+        headerNav.appendChild(eventsLink);
+      }
+    }
+
+    // Ensure direct Events pill is present in header bar
+    const headerRowRight = document.querySelector('header div.pointer-events-auto.flex.items-center.justify-end');
+    if (headerRowRight && !headerRowRight.querySelector('a[href="/events"]')) {
+      const pill = document.createElement('a');
+      pill.href = '/events';
+      pill.setAttribute('data-event', 'simple-hover');
+      pill.className = 'pointer-events-auto flex items-center gap-1.5 px-3 py-1 text-xs tracking-wider uppercase border border-brand-05/30 hover:border-brand-05/70 rounded-full transition-all text-brand-05 hover:bg-white/5 mr-1';
+      pill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400" style="box-shadow:0 0 8px #10b981"></span><span class="font-semibold">Events</span>';
+      headerRowRight.insertBefore(pill, headerRowRight.firstChild);
     }
 
     // 2. Section Two: Community and Identity (About ITSA)
@@ -611,6 +658,14 @@
           return;
         }
 
+        if (text.includes('EVENT') || text.includes('HACKATHON') || text.includes('WORKSHOP') || href === '/events' || href === '/events/') {
+          e.preventDefault();
+          e.stopPropagation();
+          window.__toggleNavMenu(false);
+          window.location.href = '/events';
+          return;
+        }
+
         if (text.includes('HOME') || href === '/' || href === '/index.html') {
           e.preventDefault();
           e.stopPropagation();
@@ -665,13 +720,20 @@
     }
 
     // 5. Hero CTAs: "EXPLORE ITSA" and "DISCOVER OUR WORK"
-    const ctaBtn = e.target.closest('[data-cta-target], [data-home-hero-cta="true"], a[href="#projects"], a[href="#about"]');
+    const ctaBtn = e.target.closest('[data-cta-target], [data-home-hero-cta="true"], a[href="#projects"], a[href="#about"], a[href="/work"], a[href*="work"]');
     if (ctaBtn) {
       const text = (ctaBtn.textContent || '').trim().toUpperCase();
       const targetAttr = ctaBtn.getAttribute('data-cta-target');
       const hrefAttr = ctaBtn.getAttribute('href');
 
-      if (targetAttr === 'projects' || hrefAttr === '#projects' || text.includes('DISCOVER OUR WORK') || text.includes('DISCOVER')) {
+      if (targetAttr === 'work' || text.includes('DISCOVER OUR WORK') || text.includes('DISCOVER') || hrefAttr === '/work' || hrefAttr === '/work/') {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open('/work', '_blank');
+        return;
+      }
+
+      if (targetAttr === 'projects' || hrefAttr === '#projects') {
         e.preventDefault();
         e.stopPropagation();
         window.__itsaScroll('projects');
@@ -700,7 +762,7 @@
     if (projectBtn) {
       e.preventDefault();
       e.stopPropagation();
-      window.location.href = '/work';
+      window.open('/work', '_blank');
       return;
     }
 
@@ -724,12 +786,21 @@
       return;
     }
 
-    // 9. Generic internal navigation fallback
+    // 9. Direct header Events pill button
+    const directEventsBtn = e.target.closest('header a[href="/events"], header a[href*="events"]');
+    if (directEventsBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = '/events';
+      return;
+    }
+
+    // 10. Generic internal navigation fallback
     const genericLink = e.target.closest('a[href]');
     if (genericLink) {
       const href = genericLink.getAttribute('href');
       if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('#') && !href.startsWith('javascript:')) {
-        if (href === '/work' || href === '/about' || href === '/' || href === '/index.html') {
+        if (href === '/work' || href === '/about' || href === '/' || href === '/index.html' || href === '/events' || href === '/events/') {
           e.preventDefault();
           e.stopPropagation();
           window.location.href = href;
@@ -763,25 +834,45 @@
     }
   }, true);
 
+  let isApplying = false;
+  let scheduled = null;
+
+  function safeApplyITSAContent() {
+    if (isApplying) return;
+    if (scheduled) return;
+    scheduled = setTimeout(() => {
+      scheduled = null;
+      if (isApplying) return;
+      isApplying = true;
+      try {
+        applyITSAContent();
+      } finally {
+        setTimeout(() => {
+          isApplying = false;
+        }, 100);
+      }
+    }, 60);
+  }
+
   // Execute on DOM ready and after window load
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', applyITSAContent);
+    document.addEventListener('DOMContentLoaded', safeApplyITSAContent);
   } else {
-    applyITSAContent();
+    safeApplyITSAContent();
   }
 
   window.addEventListener('load', () => {
-    applyITSAContent();
-    setTimeout(applyITSAContent, 200);
-    setTimeout(applyITSAContent, 600);
-    setTimeout(applyITSAContent, 1200);
-    setTimeout(applyITSAContent, 2500);
+    safeApplyITSAContent();
+    setTimeout(safeApplyITSAContent, 300);
+    setTimeout(safeApplyITSAContent, 1000);
   });
 
-  // Watch for dynamic DOM modifications (e.g. Next.js route transitions or rehydration)
+  // Watch for dynamic DOM modifications without infinite cascade
   if (typeof MutationObserver !== 'undefined') {
     const observer = new MutationObserver(() => {
-      applyITSAContent();
+      if (!isApplying) {
+        safeApplyITSAContent();
+      }
     });
     observer.observe(document.body || document.documentElement, {
       childList: true,
